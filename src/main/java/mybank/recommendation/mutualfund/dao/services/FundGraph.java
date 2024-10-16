@@ -8,26 +8,29 @@ public class FundGraph {
     private final Map<FundsAvailable, List<WeightedEdge>> adjacencyList;
 
     public FundGraph() {
+        // Keep LinkedHashMap to maintain insertion order of funds
         this.adjacencyList = new LinkedHashMap<>();
     }
 
+    // Add fund to the graph
     public void addFund(FundsAvailable fund) {
         adjacencyList.putIfAbsent(fund, new ArrayList<>());
     }
 
+    // Add edge between two funds
     public void addEdge(FundsAvailable from, FundsAvailable to, Double weight) {
         adjacencyList.get(from).add(new WeightedEdge(to, weight));
         adjacencyList.get(to).add(new WeightedEdge(from, weight)); // Assuming undirected graph
     }
 
+    // Dijkstra algorithm to find shortest path from the startFund
     public List<FundsAvailable> dijkstra(FundsAvailable startFund) {
-        // If startFund is null, select a default fund (e.g., the first fund in the graph)
         if (startFund == null) {
             Optional<FundsAvailable> defaultFund = adjacencyList.keySet().stream().findFirst();
             if (defaultFund.isEmpty()) {
                 throw new IllegalStateException("No funds available in the graph.");
             }
-            startFund = defaultFund.get(); // Set default fund as the start node
+            startFund = defaultFund.get();
         }
 
         Map<FundsAvailable, Double> distances = new HashMap<>();
@@ -35,7 +38,7 @@ public class FundGraph {
                 Comparator.comparingDouble((WeightedFund fund) -> fund.distance)
                         .thenComparing(fund -> fund.fund.getSchemeName())  // Secondary sorting by scheme name
         );
-        // Initialize distances
+
         for (FundsAvailable fund : adjacencyList.keySet()) {
             distances.put(fund, Double.MAX_VALUE);
         }
@@ -54,16 +57,16 @@ public class FundGraph {
             }
         }
 
-        // Get the recommended funds based on shortest distances
-        List<FundsAvailable> recommendedFunds = new ArrayList<>();
+        // Use LinkedList to maintain the order of recommended funds
+        List<FundsAvailable> recommendedFunds = new LinkedList<>();
         for (Map.Entry<FundsAvailable, Double> entry : distances.entrySet()) {
             if (entry.getValue() < Double.MAX_VALUE) {
                 recommendedFunds.add(entry.getKey());
             }
         }
+
         return recommendedFunds;
     }
-
 
     // Class to represent edges with weights
     private static class WeightedEdge {

@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class RecommendationService {
@@ -17,7 +16,7 @@ public class RecommendationService {
 
     public List<FundsAvailable> recommendFunds(List<FundsAvailable> selectedFunds) throws SQLException {
         FundGraph graph = new FundGraph();
-        List<FundsAvailable> allFunds = fundDbRepo.callFundsAvailable();
+        List<FundsAvailable> allFunds = selectedFunds;
 
         // Add all funds to the graph
         for (FundsAvailable fund : allFunds) {
@@ -43,15 +42,17 @@ public class RecommendationService {
                     .orElseThrow(() -> new FundException("No funds available"));
         } else {
             // Use the first selected fund as the start node (you can modify this logic)
-            startFund = selectedFunds.get(0);
+            // Use the fund with the highest rating from the selected funds as the start node
+            startFund = selectedFunds.stream()
+                    .max(Comparator.comparingInt(FundsAvailable::getRating))
+                    .orElseThrow(() -> new FundException("No selected funds available"));
         }
 
         // Run Dijkstra's algorithm starting from the determined startFund
         List<FundsAvailable> recommendedFunds = graph.dijkstra(startFund);
+        recommendedFunds.sort(Comparator.comparingInt(FundsAvailable::getRating).reversed());
 
-//        // Sort the recommended funds by composite score and then by scheme name for consistency
-//        recommendedFunds.sort(Comparator.comparing(FundsAvailable::getCompositeScore)
-//                .thenComparing(FundsAvailable::getSchemeName));
-        return recommendedFunds;
+
+        return new ArrayList<>(recommendedFunds);
     }
 }
