@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>MutualFunds</title>
+  <!-- Bootstrap 4 CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- jQuery and Bootstrap JS (for Bootstrap 4) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap 5 JS Bundle (includes Popper.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Bootstrap Icons (Optional) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Google Fonts (Optional) -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" th:href="@{/styles/styles.css}">
+  <style>
+    /* Custom Styles for Cards */
+    .card{
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: rgba(188, 196, 244, 0.65);
+      transition: 0.3s;
+      transform: scale(1.1);
+    }
+
+    .card-header {
+      background-color: #ECEEFBFF; /* Dark Blue */
+      color: #ffffff;
+      overflow: hidden;
+    }
+
+    .card-body {
+      background-color: rgb(236, 238, 251);
+    }
+
+    strong {
+      color: rgba(24, 32, 82, 0.39);
+    }
+    .filter-section {
+      padding: 20px;
+      background-color: rgba(242, 92, 25, 0.16);
+    }
+    .filter-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .filter-category, .filter-size, .filter-houses {
+      margin-bottom: 20px;
+    }
+    .filter-category .form-check, .filter-size .form-check, .filter-houses .form-check {
+      margin-bottom: 10px;
+    }
+    .filter-category .form-check-label, .filter-size .form-check-label, .filter-houses .form-check-label {
+      font-weight: normal;
+    }
+
+    .filter-title a {
+      text-decoration: none; /* Remove underline */
+      color: inherit; /* Inherit the text color from parent */
+    }
+
+    .filter-title a:hover {
+      text-decoration: none; /* Ensure no underline on hover */
+    }
+
+    #fundSearch {
+      background-color: #f8f9fa; /* Light gray background */
+      color: #182052; /* Dark blue text */
+      border-color: #182052; /* Dark blue border */
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .input-group-text {
+      background-color: #f8f9fa;
+      border-color: #182052;
+      color: #182052;
+    }
+
+    #search-icon i {
+      font-size: 16px; /* Adjust icon size */
+    }
+    .custom-search-width {
+      width: 800px; /* Set the desired width */
+    }
+
+
+  </style>
+</head>
+<body>
+<div th:replace="dashboard :: dashboard"></div>
+<!-- Modal for Search -->
+<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="searchModalLabel">Search Mutual Funds</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form class="form-inline">
+          <div class="input-group d-flex justify-content-center align-items-center col-12">
+            <div class="input-group-prepend">
+                                <span class="input-group-text" id="search-icon">
+                                    <i class="bi bi-search"></i>
+                                </span>
+            </div>
+            <input type="text" id="fundSearch" style="width: 390px" placeholder="Search Mutual Funds" oninput="submitSearch()"
+                   class="form-control" aria-label="Search" aria-describedby="search-icon">
+          </div>
+        </form>
+      </div>
+      <div id="fundCardsContainer" class="container mt-3"></div> <!-- Container for cards inside modal -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="container-fluid">
+  <div class="row mt-5">
+    <!-- Filter Section -->
+    <div class="col-3">
+      <form id="fundsForm">
+        <h2 class="mb-4">Filter</h2>
+    <div class="filter-section rounded-4">
+      <div class="fund-category">
+        <div class="filter-title">Category</div>
+        <div class="form-check">
+        <!-- Equity Dropdown -->
+      <div class="filter-category mb-3">
+        <div class="filter-title">
+          <a href="#equityOptions" data-toggle="collapse"  aria-expanded="false" aria-controls="equityOptions" class="d-flex justify-content-between">
+            Equity
+            <i class="bi bi-chevron-down dropdown-icon"></i> <!-- Dropdown icon -->
+          </a>
+        </div>
+        <div id="equityOptions" class="collapse">
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="Small" value="Small Cap Mutual Funds" name="selectedSubcategories" onchange="submitCheckbox()">
+            <label class="form-check-label" for="Small">Small Cap Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="ELSS" value="ELSS Mutual Funds" name="selectedSubcategories" onchange="submitCheckbox()">
+            <label class="form-check-label" for="ELSS">ELSS Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Sectoral" value="Sectoral / Thematic Mutual Funds</label">
+            <label class="form-check-label" for="Sectoral">Sectoral / Thematic Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Multi" value="Multi Cap Funds">
+            <label class="form-check-label" for="Multi">Multi Cap Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Cap" value="Large Cap Mutual Funds">
+            <label class="form-check-label" for="Cap">Large Cap Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Large" value="Large & Mid Cap Funds">
+            <label class="form-check-label" for="Large">Large & Mid Cap Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Mid" value="Mid Cap Mutual Funds">
+            <label class="form-check-label" for="Mid">Mid Cap Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Dividend" value="Dividend Yield Funds">
+            <label class="form-check-label" for="Dividend">Dividend Yield Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Flexi" value="Flexi Cap Funds">
+            <label class="form-check-label" for="Flexi">Flexi Cap Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Value" value="Value Funds">
+            <label class="form-check-label" for="Value">Value Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Contra" value="Contra Funds">
+            <label class="form-check-label" for="Contra">Contra Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Focused" value="Focused Funds">
+            <label class="form-check-label" for="Focused">Focused Funds</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debt Dropdown -->
+      <div class="filter-category mb-3">
+        <div class="filter-title">
+          <a href="#debtOptions" data-toggle="collapse" aria-expanded="false" aria-controls="debtOptions" class="d-flex justify-content-between">
+            Debt
+            <i class="bi bi-chevron-down dropdown-icon"></i> <!-- Dropdown icon -->
+          </a>
+        </div>
+        <div id="debtOptions" class="collapse">
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Liquid" value="Liquid Mutual Funds">
+            <label class="form-check-label" for="Liquid">Liquid Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Fixed" value="Fixed Maturity Plans">
+            <label class="form-check-label" for="Fixed">Fixed Maturity Plans</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Money" value="Money Market Funds">
+            <label class="form-check-label" for="Money">Money Market Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedFunds" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Low" value="Low Duration Funds">
+            <label class="form-check-label" for="Low">Low Duration Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Floater" value="Floater Mutual Funds">
+            <label class="form-check-label" for="Floater">Floater Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Dynamic" value="Dynamic Bond">
+            <label class="form-check-label" for="Dynamic">Dynamic Bond</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Banking" value="Banking and PSU Mutual Funds">
+            <label class="form-check-label" for="Banking">Banking and PSU Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Corporate" value="Corporate Bond Mutual Funds">
+            <label class="form-check-label" for="Corporate">Corporate Bond Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Short" value="Short Duration Funds">
+            <label class="form-check-label" for="Short">Short Duration Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Credit" value="Credit Risk Funds">
+            <label class="form-check-label" for="Credit">Credit Risk Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Medium" value="Medium Duration Funds">
+            <label class="form-check-label" for="Medium">Medium Duration Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Overnight" value="Overnight Mutual Funds">
+            <label class="form-check-label" for="Overnight">Overnight Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="MediumFunds" value="Medium to Long Duration Funds">
+            <label class="form-check-label" for="MediumFunds">Medium to Long Duration Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Gilt" value="Gilt Mutual Funds">
+            <label class="form-check-label" for="Gilt">Gilt Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Ultra" value="Ultra Short Duration Funds">
+            <label class="form-check-label" for="Ultra">Ultra Short Duration Funds</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hybrid Dropdown -->
+      <div class="filter-category mb-3">
+        <div class="filter-title">
+          <a href="#hybridOptions" data-toggle="collapse" aria-expanded="false" aria-controls="hybridOptions" class="d-flex justify-content-between">
+            Hybrid
+            <i class="bi bi-chevron-down dropdown-icon"></i> <!-- Dropdown icon -->
+          </a>
+        </div>
+        <div id="hybridOptions" class="collapse">
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Conservative" value="Conservative Hybrid Mutual Funds">
+            <label class="form-check-label" for="Conservative">Conservative Hybrid Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()"  type="checkbox" class="form-check-input" id="Equity Savings" value="Equity Savings Mutual Funds">
+            <label class="form-check-label" for="Equity Savings">Equity Savings Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="DynamicAsset" value="Dynamic Asset Allocation or Balanced Advantage">
+            <label class="form-check-label" for="DynamicAsset">Dynamic Asset Allocation or Balanced Advantage</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Aggressive" value="Aggressive Hybrid Mutual Funds">
+            <label class="form-check-label" for="Aggressive">Aggressive Hybrid Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Arbitrage" value="Arbitrage Mutual Funds">
+            <label class="form-check-label" for="Arbitrage">Arbitrage Mutual Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Multi Asset" value="Multi Asset Allocation Mutual Funds">
+            <label class="form-check-label" for="Multi Asset">Multi Asset Allocation Mutual Funds</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solution Oriented Dropdown -->
+      <div class="filter-category mb-3">
+        <div class="filter-title">
+          <a href="#solutionOrientedOptions" data-toggle="collapse" aria-expanded="false" aria-controls="solutionOrientedOptions" class="d-flex justify-content-between">
+            Solution Oriented
+            <i class="bi bi-chevron-down dropdown-icon"></i> <!-- Dropdown icon -->
+          </a>
+        </div>
+        <div id="solutionOrientedOptions" class="collapse">
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="Solution Oriented" value="Solution Oriented">
+            <label class="form-check-label" for="Solution Oriented">Solution Oriented</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other Dropdown -->
+      <div class="filter-category mb-3">
+        <div class="filter-title">
+          <a href="#otherOptions" data-toggle="collapse" aria-expanded="false" aria-controls="otherOptions" class="d-flex justify-content-between">
+            Other
+            <i class="bi bi-chevron-down dropdown-icon"></i> <!-- Dropdown icon -->
+          </a>
+        </div>
+        <div id="otherOptions" class="collapse">
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="fofsDomestic" value="FoFs Domestic">
+            <label class="form-check-label" for="fofsDomestic">FoFs Domestic</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="indexFunds" value="Index Funds">
+            <label class="form-check-label" for="indexFunds">Index Funds</label>
+          </div>
+          <div class="form-check">
+            <input name="selectedSubcategories" onchange="submitCheckbox()" type="checkbox" class="form-check-input" id="fofsOverseas" value="FoFs Overseas">
+            <label class="form-check-label" for="fofsOverseas">FoFs Overseas</label>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <div class="filter-size">
+        <div class="filter-title">Fund Size (AUM)</div>
+        <div class="form-check">
+          <input name="FundSize" onchange="submitCheckbox()" value="1" class="form-check-input" type="checkbox" id="below-100">
+          <label class="form-check-label" for="below-100">Below 100 <span class="text-muted">crores</span></label>
+        </div>
+        <div class="form-check">
+          <input name="FundSize" onchange="submitCheckbox()" value="100" class="form-check-input" type="checkbox" id="100-500">
+          <label class="form-check-label" for="100-500">100 - 500 <span class="text-muted">crores</span></label>
+        </div>
+        <div class="form-check">
+          <input name="FundSize" onchange="submitCheckbox()" value="500" class="form-check-input" type="checkbox" id="500-1000">
+          <label class="form-check-label" for="500-1000">500 - 1000 <span class="text-muted">crores</span></label>
+        </div>
+        <div class="form-check">
+          <input name="FundSize" onchange="submitCheckbox()" value="1001" class="form-check-input" type="checkbox" id="above-1000">
+          <label class="form-check-label" for="above-1000">Above 1,000 <span class="text-muted">crores</span></label>
+        </div>
+      </div>
+
+      <div class="filter-houses">
+        <div class="filter-title">Fund Houses (AMCs)</div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Quant-one" value="Quant Mutual Fund">
+          <label class="form-check-label" for="Quant-one">Quant Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="aditya-birla" value="Axis Mutual Fund">
+          <label class="form-check-label" for="aditya-birla">Axis Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="ICICI" value="ICICI Prudential Mutual Fund">
+          <label class="form-check-label" for="ICICI">ICICI Prudential Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Nippon" value="Nippon India Mutual Fund">
+          <label class="form-check-label" for="Nippon">Nippon India Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Tata" value="Tata Mutual Fund">
+          <label class="form-check-label" for="Tata">Tata Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="PGIM" value="PGIM India Mutual Fund">
+          <label class="form-check-label" for="PGIM">PGIM India Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="UTI" value="UTI Mutual Fund">
+          <label class="form-check-label" for="UTI">UTI Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Sundaram" value="Sundaram Mutual Fund">
+          <label class="form-check-label" for="Sundaram">Sundaram Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Aditya" value="Aditya Birla Sun Life Mutual Fund">
+          <label class="form-check-label" for="Aditya">Aditya Birla Sun Life Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="SBI" value="SBI Mutual Fund">
+          <label class="form-check-label" for="SBI">SBI Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="HDFC" value="HDFC Mutual Fund">
+          <label class="form-check-label" for="HDFC">HDFC Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Kotak" value="Kotak Mahindra Mutual Fund">
+          <label class="form-check-label" for="Kotak">Kotak Mahindra Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Baroda" value="Baroda BNP Paribas Mutual Fund">
+          <label class="form-check-label" for="Baroda">Baroda BNP Paribas Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="HSBC" value="HSBC Mutual Fund">
+          <label class="form-check-label" for="HSBC">HSBC Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Franklin" value="Edelweiss Mutual Fund">
+          <label class="form-check-label" for="Franklin">Edelweiss Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Edelweiss" value="Edelweiss Mutual Fund">
+          <label class="form-check-label" for="Edelweiss">Edelweiss Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="ITI" value="ITI Mutual Fund">
+          <label class="form-check-label" for="ITI">ITI Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Trust" value="Trust Mutual Fund">
+          <label class="form-check-label" for="Trust">Trust Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Mahindra" value="Mahindra Manulife Mutual Fund">
+          <label class="form-check-label" for="Mahindra">Mahindra Manulife Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Invesco" value="Invesco Mutual Fund">
+          <label class="form-check-label" for="Invesco">Invesco Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="LIC" value="LIC Mutual Fund">
+          <label class="form-check-label" for="LIC">LIC Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="DSP" value="DSP Mutual Fund">
+          <label class="form-check-label" for="DSP">DSP Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Union" value="Union Mutual Fund">
+          <label class="form-check-label" for="Union">Union Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Mirae" value="Mirae Asset Mutual Fund">
+          <label class="form-check-label" for="Mirae">Mirae Asset Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="IDBI" value="IDBI Mutual Fund">
+          <label class="form-check-label" for="IDBI">IDBI Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Quantum" value="Quantum Mutual Fund">
+          <label class="form-check-label" for="Quantum">Quantum Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Navi" value="Navi Mutual Fund">
+          <label class="form-check-label" for="Navi">Navi Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Canara" value="Canara Robeco Mutual Fund">
+          <label class="form-check-label" for="Canara">Canara Robeco Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Bank of India" value="Bank of India Mutual Fund">
+          <label class="form-check-label" for="Bank of India">Bank of India Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="IIFL" value="IIFL Mutual Fund">
+          <label class="form-check-label" for="IIFL">IIFL Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Bandhan" value="Bandhan Mutual Fund">
+          <label class="form-check-label" for="Bandhan">Bandhan Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="PPFAS" value="PPFAS Mutual Fund">
+          <label class="form-check-label" for="PPFAS">PPFAS Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="JM" value="JM Financial Mutual Fund">
+          <label class="form-check-label" for="JM">JM Financial Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Motilal" value="Motilal Oswal Mutual Fund">
+          <label class="form-check-label" for="Motilal">Motilal Oswal Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="WhiteOak" value="WhiteOak Capital Mutual Fund">
+          <label class="form-check-label" for="WhiteOak">WhiteOak Capital Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Shriram" value="Shriram Mutual Fund">
+          <label class="form-check-label" for="Shriram">Shriram Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Indiabulls" value="Indiabulls Mutual Fund">
+          <label class="form-check-label" for="Indiabulls">Indiabulls Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="Taurus" value="Taurus Mutual Fund">
+          <label class="form-check-label" for="Taurus">Taurus Mutual Fund</label>
+        </div>
+        <div class="form-check">
+          <input name="selectedAMCs" onchange="submitCheckbox()" class="form-check-input" type="checkbox" id="L&T" value="L&T Mutual Fund">
+          <label class="form-check-label" for="L&T">L&T Mutual Fund</label>
+        </div>
+      </div>
+    </div>
+      </form>
+  </div>
+
+
+  <div class="container col-8">
+    <div id="recommendedFundsContainer" >
+      <h2 class="mb-4 fw-bolder" style="color: #182052;">Available Mutual Funds</h2>
+
+  <!-- Mutual Funds Cards -->
+      <div  th:if="${fundAvailable}" class="row ">
+        <div th:each="fund, index : ${fundAvailable}" class="col-lg-12 col-md-12 me-5 mb-4 ">
+          <div class="card rounded-4 border-3 shadow-sm" >
+            <div class="card-header rounded-bottom-2 d-flex align-items-center justify-content-between">
+              <!-- Left Section: Icon and Fund Information -->
+              <div class="d-flex align-items-center">
+                <!-- Icon Section -->
+                <i class="bi bi-bank2 pe-4 mb-0" style="font-size: 45px; color: #182052;"></i>
+
+                <!-- Text Section -->
+                <div>
+                  <h5 th:text="${fund.schemeName}" style="color: #182052;">Fund Name</h5>
+
+                  <!-- Category and Subcategory in single line -->
+                  <h6 class="mb-0" style="color: rgba(24,32,82,0.67);">
+                    <span th:text="${fund.category}">Category</span>
+                    &bull;
+                    <span th:text="${fund.subCategory}">Subcategory</span>
+                  </h6>
+                </div>
+              </div>
+
+              <!-- Right Section: Rating -->
+              <div class="d-flex align-items-center">
+                <!-- Loop to generate the rating stars -->
+                <span th:each="i : ${#numbers.sequence(1, 5)}">
+                  <i class="bi" id="bi-star" th:classappend="${i <= fund.rating ? 'bi-star-fill text-warning' : 'bi-star'}" style="font-size: 20px; color: #182052"></i>
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-1"></div>
+                <!-- NAV -->
+                <div class="col-md-2">
+                  <strong>NAV</strong>
+                  <div class="text-success fw-bolder">
+                    <i th:text="'₹' + ${fund.nav}"></i>
+                  </div>
+                </div>
+
+                <!-- AUM -->
+                <div class="col-md-2">
+                  <strong>AUM</strong>
+                  <div>
+                    <i th:text="'₹' + ${fund.fundSizeCr}"></i>
+                    <span class="fw-bold">Cr.</span>
+                  </div>
+                </div>
+
+                <!-- Min. SIP -->
+                <div class="col-md-2">
+                  <strong>Min. SIP</strong>
+                  <div>
+                    <i th:text="'₹' + ${fund.minSip}"></i>
+                  </div>
+                </div>
+
+                <!-- Min. LumpSum -->
+                <div class="col-md-2">
+                  <strong>Min. LumpSum</strong>
+                  <div>
+                    <i th:text="'₹' + ${fund.minLumpsum}"></i>
+                  </div>
+                </div>
+                <!-- Return Period Selection -->
+                <div class="col-md-3">
+                  <div class="container">
+                    <strong>Risk Level: </strong>
+                    <div class="text-danger">
+                      <span  class="risk-level" th:data-risk-level="${fund.riskLevel}">Loading...</span>
+                    </div>
+                  </div>
+                </div>
+
+
+
+                <!-- No Funds Available Message -->
+                <div th:unless="${fundAvailable}" class="alert alert-info" role="alert">
+                  No mutual funds are currently available.
+                </div>
+
+
+              </div>
+              <div class="card-footer mt-3" style="background-color: transparent">
+                <div class="d-flex justify-content-center align-items-center text-center mb-0">
+                  <strong class="pe-1 mb-0">Expense ratio:</strong>
+                  <i class="pe-3 mb-0" th:text="${#numbers.formatDecimal(fund.expenseRatio, 1, 2)} + '%'"></i>
+                  <strong class="ps-3 pe-1 mb-0">Fund Age:</strong>
+                  <i class="mb-0" th:text="${fund.fundAgeYr} + ' Yr.'"></i>
+                </div>
+              </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- No Funds Available Message -->
+  <div th:unless="${fundAvailable}" class="alert alert-info" role="alert">
+    No mutual funds are currently available.
+  </div>
+</div>
+</div>
+
+
+<script th:inline="javascript">
+  var fundAvailable = /*[[${fundAvailable}]]*/ [];
+  $(document).ready(function() {
+    // Function to map risk levels to text
+    function riskMapping() {
+      const riskLevelMap = {
+        1: 'Low risk',
+        2: 'Low to moderate',
+        3: 'Moderate',
+        4: 'Moderately High',
+        5: 'High',
+        6: 'Very High'
+      };
+
+      // Loop through each element with class "risk-level" and update the text
+      $('.risk-level').each(function() {
+        const risk = $(this).data('risk-level'); // Get the risk level from data attribute
+        const riskText = riskLevelMap[risk] || 'Unknown Risk Level';
+        $(this).text(riskText); // Set the corresponding risk level text
+      });
+    }
+
+    // Call riskMapping when the page is ready
+    riskMapping();
+  });
+
+
+  function submitCheckbox() {
+    let selectedSubcategories = [];
+    let selectedAMCs = [];
+    let fundSize = [];
+    $('input[name="selectedSubcategories"]:checked').each(function() {
+      selectedSubcategories.push($(this).val());
+    });
+
+    $('input[name="selectedAMCs"]:checked').each(function() {
+      selectedAMCs.push($(this).val());
+    });
+    $('input[name="FundSize"]:checked').each(function() {
+      fundSize.push($(this).val());
+    });
+console.log(selectedSubcategories,selectedAMCs)
+    $.ajax({
+      url: '/ui/recommend',
+      method: 'GET',
+      data: {
+        selectedSubcategories: selectedSubcategories,
+        selectedAMCs: selectedAMCs,
+        fundSize: fundSize
+      },
+      success: function(funds) {
+        let html = '<h2 class="mb-4 fw-bolder" style="color: #182052;">Available Mutual Funds</h2>';
+
+        funds.forEach(fund => {
+          html += `
+                <div class="container col-12">
+                    <div id="recommendedFundsContainer">
+
+                        <!-- Mutual Funds Cards -->
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 me-5 mb-4">
+                                <div class="card rounded-4 border-3 shadow-sm" style="color: #182052">
+                                    <div class="card-header rounded-bottom-2 d-flex align-items-center justify-content-between">
+                                        <!-- Left Section: Icon and Fund Information -->
+                                        <div class="d-flex align-items-center">
+                                            <!-- Icon Section -->
+                                            <i class="bi bi-bank2 pe-4 mb-0" style="font-size: 45px; color: #182052;"></i>
+
+                                            <!-- Text Section -->
+                                            <div>
+                                                <h5 style="color: #182052;">${fund.schemeName}</h5>
+                                                <!-- Category and Subcategory in single line -->
+                                                <h6 class="mb-0" style="color: rgba(24,32,82,0.67);">
+                                                    ${fund.category} &bull; ${fund.subCategory}
+                                                </h6>
+                                            </div>
+                                        </div>
+
+                                        <!-- Right Section: Rating -->
+                                        <div class="d-flex align-items-center">
+                                            <!-- Loop to generate the rating stars -->
+                                            ${generateRatingStars(fund.rating)}
+                                        </div>
+                                    </div>
+
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-1"></div>
+
+                                            <!-- NAV -->
+                                            <div class="col-md-2">
+                                                <strong>NAV</strong>
+                                                <div class="text-success fw-bolder">₹${fund.nav}</div>
+                                            </div>
+
+                                            <!-- AUM -->
+                                            <div class="col-md-2">
+                                                <strong>AUM</strong>
+                                                <div>₹${fund.fundSizeCr} Cr.</div>
+                                            </div>
+
+                                            <!-- Min. SIP -->
+                                            <div class="col-md-2">
+                                                <strong>Min. SIP</strong>
+                                                <div>₹${fund.minSip}</div>
+                                            </div>
+
+                                            <!-- Min. LumpSum -->
+                                            <div class="col-md-2">
+                                                <strong>Min. LumpSum</strong>
+                                                <div>₹${fund.minLumpsum}</div>
+                                            </div>
+
+                                            <!-- Risk Level -->
+                                            <div class="col-md-3">
+                                                <div class="container">
+                                                    <strong>Risk Level: </strong>
+                                                    <div class="text-danger">${mapRiskLevel(fund.riskLevel)}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-footer mt-3 " style="background-color: transparent;" >
+                                        <div class="d-flex justify-content-center align-items-center text-center mb-0">
+                                            <strong class="pe-1 mb-0">Expense ratio:</strong>
+                                            <span class="pe-3 mb-0">${(fund.expenseRatio).toFixed(2)}%</span>
+                                            <strong class="ps-3 pe-1 mb-0">Fund Age:</strong>
+                                            <span class="mb-0">${fund.fundAgeYr} Yr.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+
+        $('#recommendedFundsContainer').html(html);
+      },
+      error: function(xhr, status, error) {
+        console.error('Error fetching recommended funds:', error);
+        $('#recommendedFundsContainer').html('<div class="alert alert-danger" role="alert">No funds available.</div>');
+
+      }
+    });
+  }
+
+  // Helper function to generate rating stars based on the rating
+  function generateRatingStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+      if (i <= rating) {
+        stars += '<i class="bi bi-star-fill text-warning" style="font-size: 20px; color: #182052;"></i>';
+      } else {
+        stars += '<i class="bi bi-star" style="font-size: 20px; color: #182052;"></i>';
+      }
+    }
+    return stars;
+  }
+
+  // Helper function to map the risk level
+  function mapRiskLevel(riskLevel) {
+    const riskLevelMap = {
+      1: 'Low risk',
+      2: 'Low to moderate',
+      3: 'Moderate',
+      4: 'Moderately High',
+      5: 'High',
+      6: 'Very High'
+    };
+    return riskLevelMap[riskLevel] || 'Unknown';
+  }
+
+  $(document).ready(function() {
+    let debounceTimer;
+
+    // Function to submit search
+    $('#fundSearch').on('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        let query = $(this).val(); // Get the search query
+
+        if (query.length > 0) { // Proceed only if there is some input
+          $.ajax({
+            url: '/ui/search-funds', // Endpoint for the search
+            data: { searchTerm: query }, // Send the input value as 'searchTerm'
+            success: function(funds) {
+              updateFundCards(funds); // Update the UI with the returned fund data
+            },
+            error: function() {
+              $('#fundCardsContainer').html('<p>Error fetching results</p>');
+            }
+          });
+        } else {
+          $('#fundCardsContainer').empty(); // Clear the cards if input is empty
+        }
+      }, 300); // Wait for 300ms after last keypress before sending request
+    });
+
+    // Function to update fund cards
+    function updateFundCards(funds) {
+      let fundCardsContainer = $('#fundCardsContainer');
+      fundCardsContainer.empty(); // Clear previous results
+
+      if (funds.length === 0) {
+        fundCardsContainer.html('<p>No mutual funds found</p>');
+      } else {
+        $.each(funds, function(index, fund) {
+          let cardHTML = `
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${fund.schemeName}</h5>
+                            <p class="card-text">${fund.category} • ${fund.subCategory}</p>
+                        </div>
+                    </div>
+                `;
+          fundCardsContainer.append(cardHTML); // Append each card
+        });
+      }
+    }
+
+    // Function to map risk level
+    function mapRiskLevel(level) {
+      const riskLevelMap = {
+        1: 'Low risk',
+        2: 'Low to moderate',
+        3: 'Moderate',
+        4: 'Moderately High',
+        5: 'High',
+        6: 'Very High'
+      };
+      return riskLevelMap[level] || 'Unknown Risk Level';
+    }
+  });
+
+</script>
+
+
+
+</body>
+</html>
