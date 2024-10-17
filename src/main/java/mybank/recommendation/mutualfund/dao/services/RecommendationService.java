@@ -50,6 +50,7 @@ public class RecommendationService {
 
         // Run Dijkstra's algorithm starting from the determined startFund
         List<FundsAvailable> recommendedFunds = graph.dijkstra(startFund);
+
         recommendedFunds.sort(Comparator.comparingInt(FundsAvailable::getRating).reversed());
 
 
